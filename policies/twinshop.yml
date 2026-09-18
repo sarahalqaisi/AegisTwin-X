@@ -1,0 +1,61 @@
+promises:
+  - id: INV-OWNERSHIP-001
+    title: Invoice ownership boundary
+    description: A customer can read an invoice only when it belongs to that customer.
+    subject_role: customer
+    action: read
+    resource: invoice
+    condition: resource.owner_id == subject.user_id
+    endpoint: GET /invoices/{invoice_id}
+    expected_on_failure: 403
+    severity: high
+    approved: true
+
+  - id: REF-MANAGER-001
+    title: Manager-only refund approval
+    description: Support agents may review refunds but only managers may approve them.
+    subject_role: manager
+    action: approve
+    resource: refund
+    condition: subject.role == manager
+    endpoint: POST /refunds/{refund_id}/approve
+    expected_on_failure: 403
+    severity: critical
+    approved: true
+
+  - id: REF-SEPARATION-001
+    title: Refund separation of duties
+    description: A user cannot approve a refund request they created.
+    subject_role: manager
+    action: approve
+    resource: refund
+    condition: resource.created_by != subject.user_id
+    endpoint: POST /refunds/{refund_id}/approve
+    expected_on_failure: 403
+    severity: high
+    approved: true
+
+  - id: ID-ACTIVE-001
+    title: Disabled identity isolation
+    description: A disabled identity cannot use a protected endpoint.
+    subject_role: customer
+    action: access
+    resource: protected_api
+    condition: subject.active == true
+    endpoint: ANY /protected/*
+    expected_on_failure: 401
+    severity: high
+    approved: true
+
+  - id: LOG-SECRET-001
+    title: Sensitive value redaction
+    description: Passwords, tokens, and payment references must not appear in logs.
+    subject_role: system
+    action: log
+    resource: sensitive_value
+    condition: value.is_redacted == true
+    endpoint: Application logs
+    expected_on_failure: 500
+    severity: high
+    approved: true
+

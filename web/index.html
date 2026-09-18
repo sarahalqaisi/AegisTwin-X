@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AegisTwin X — Product Security Intelligence</title>
+    <link rel="icon" type="image/png" href="/static/aegistwin-logo.png" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="noise"></div>
+    <header>
+      <a class="brand" href="#"><span class="mark"><img src="/static/aegistwin-logo.png" alt="AegisTwin X shield logo" /></span><span>AegisTwin <b>X</b></span></a>
+      <div class="status"><span></span> Shadow Lab isolated</div>
+    </header>
+    <main>
+      <section class="hero">
+        <div>
+          <div class="hero-brand">
+            <img src="/static/aegistwin-logo.png" alt="AegisTwin X brand mark" />
+            <div><strong>AEGISTWIN X</strong><p class="eyebrow">PRODUCT SECURITY INTELLIGENCE</p></div>
+          </div>
+          <h1>Protect what your<br /><em>product promises.</em></h1>
+          <p class="lede">Turn business-security rules into evidence. Map authorization changes, verify regressions safely, and stop risky code before production.</p>
+          <div class="actions">
+            <button id="runButton" onclick="runAnalysis('insecure')">Analyze insecure PR <span>→</span></button>
+            <button class="secondary" onclick="runAnalysis('secure')">Verify fixed version</button>
+          </div>
+        </div>
+        <div class="radar-card">
+          <div class="radar-header"><span>SECURITY DNA</span><span id="scanState">READY</span></div>
+          <div class="radar"><div class="sweep"></div><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div></div>
+          <div class="radar-footer"><span>TwinShop</span><strong id="decision">Awaiting analysis</strong></div>
+        </div>
+      </section>
+
+      <section class="metrics">
+        <article><span>BASELINE</span><strong id="baseline">96</strong><small>/100</small></article>
+        <article><span>CANDIDATE</span><strong id="candidate">—</strong><small>/100</small></article>
+        <article><span>DNA DRIFT</span><strong id="drift">—</strong><small>%</small></article>
+        <article><span>VERIFIED</span><strong id="verified">—</strong><small>findings</small></article>
+      </section>
+
+      <section class="workspace">
+        <div class="panel graph-panel">
+          <div class="panel-title"><div><span class="icon">⌘</span><div><h2>Authorization graph</h2><p>Living relationships and newly reachable paths</p></div></div><span class="tag">LIVE MODEL</span></div>
+          <div id="graph" class="graph-empty"><p>Run an analysis to build the security graph.</p></div>
+        </div>
+        <div class="panel findings-panel">
+          <div class="panel-title"><div><span class="icon">!</span><div><h2>Verified evidence</h2><p>Deterministic results, not AI guesses</p></div></div></div>
+          <div id="findings" class="empty"><span>✓</span><p>No analysis results yet</p></div>
+        </div>
+      </section>
+
+      <section class="promise-panel panel">
+        <div class="panel-title"><div><span class="icon">◇</span><div><h2>Security Promise Contracts</h2><p>Human-approved business rules compiled into tests</p></div></div><span class="tag purple">POLICY AS CODE</span></div>
+        <div id="promises" class="promise-grid"></div>
+      </section>
+    </main>
+    <footer><span>AegisTwin X v0.1.0</span><span>Defensive testing • Synthetic data • Human approval</span></footer>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

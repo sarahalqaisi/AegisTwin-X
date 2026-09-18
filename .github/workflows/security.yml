@@ -1,0 +1,96 @@
+name: AegisTwin Security Gate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+      - name: Verify fixed candidate
+        run: python scripts/security_gate.py --variant secure --output aegistwin-report.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aegistwin-security-report
+          path: aegistwin-report.md
+
+  container-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build hardened container
+        run: docker build --tag aegistwin-x:ci .
+      - name: Start isolated container
+        run: |
+          docker volume create aegistwin-ci-data
+          docker run --detach --name aegistwin-ci \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=64m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --volume aegistwin-ci-data:/app/data \
+            --publish 8000:8000 \
+            aegistwin-x:ci
+      - name: Verify health and security decision
+        run: |
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8000/health; then
+              break
+            fi
+            if [ "$attempt" = "20" ]; then
+              docker logs aegistwin-ci
+              exit 1
+            fi
+            sleep 1
+          done
+          response="$(curl --fail --silent --request POST 'http://127.0.0.1:8000/api/analyses/demo?variant=insecure')"
+          python -c 'import json,sys; data=json.load(sys.stdin); assert data["decision"] == "BLOCK"; assert len(data["findings"]) == 2' <<< "$response"
+      - name: Show logs on failure
+        if: failure()
+        run: docker logs aegistwin-ci || true
+      - name: Clean up
+        if: always()
+        run: |
+          docker rm --force aegistwin-ci || true
+          docker volume rm aegistwin-ci-data || true
+
+  website-screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install app and browser
+        run: |
+          pip install -e ".[dev]" playwright
+          playwright install --with-deps chromium
+      - name: Start AegisTwin X
+        run: |
+          uvicorn aegistwin.main:app --host 127.0.0.1 --port 8000 > /tmp/aegistwin.log 2>&1 &
+          for attempt in {1..20}; do
+            curl --fail --silent http://127.0.0.1:8000/health && break
+            if [ "$attempt" = "20" ]; then
+              cat /tmp/aegistwin.log
+              exit 1
+            fi
+            sleep 1
+          done
+      - name: Capture real website states
+        run: python scripts/capture_screenshots.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aegistwin-website-screenshots
+          path: docs/screenshots/*.png

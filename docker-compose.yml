@@ -1,0 +1,18 @@
+services:
+  aegistwin:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - aegistwin-data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  aegistwin-data:
+
